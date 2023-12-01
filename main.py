@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from random import randint, choice, shuffle
 import pyperclip
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
 
@@ -31,21 +32,44 @@ def save(website, email, password):
     if len(website_entry.get()) == 0 or len(email_entry.get()) == 0 or len(password_entry.get()) == 0:
         messagebox.showwarning("Warning", "Please fill all the blanks.")
     else:
-        is_ok = messagebox.askokcancel("Save", "Saving as\n"
-                                               f"Website: {website_entry.get()}\n"
-                                               f"Email/Username: {email_entry.get()}\n"
-                                               f"Password: {password_entry.get()}")
+        new_record = {
+            website: {
+                "email": email,
+                "password": password
+            }
+        }
 
-        if is_ok:
-            with open("database.txt", "a") as database:
-                database.write(f"{website},{email},{password}\n")
-            clear()
+        try:
+            with open("data.json", "r") as database:
+                data = json.load(database)
+        except FileNotFoundError:
+            with open("data.json", "w") as database:
+                json.dump(new_record, database, indent=4)
+        else:
+            data.update(new_record)
+            with open("data.json", "w") as database:
+                json.dump(data, database, indent=4)
+        finally:
+            website_entry.delete(0, END)
+            password_entry.delete(0, END)
             website_entry.focus()
 
 
-def clear():
-    website_entry.delete(0, END)
-    password_entry.delete(0, END)
+def find_password(website):
+    try:
+        with open("data.json", "r") as database:
+            data = json.load(database)
+    except FileNotFoundError:
+        messagebox.showerror("Error", "No records saved.")
+    else:
+        try:
+            email_record = data[website]["email"]
+            password_record = data[website]["password"]
+
+            messagebox.showinfo(website, f"email: {email_record}\n"
+                                         f"password: {password_record}")
+        except KeyError:
+            messagebox.showerror("Error", "No records matching.")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -69,8 +93,8 @@ email_label.grid(column=0, row=2)
 password_label = Label(text="Password:")
 password_label.grid(column=0, row=3)
 
-website_entry = Entry(width=35)
-website_entry.grid(column=1, row=1, columnspan=2)
+website_entry = Entry(width=16)
+website_entry.grid(column=1, row=1)
 website_entry.focus()
 
 email_entry = Entry(width=35)
@@ -85,5 +109,8 @@ generate_password_button.grid(column=2, row=3)
 
 add_button = Button(text="Add", width=30, command=lambda: save(website_entry.get(), email_entry.get(), password_entry.get()))
 add_button.grid(column=1, row=4, columnspan=2)
+
+search_button = Button(text="Search", width=15, command=lambda: find_password(website_entry.get()))
+search_button.grid(column=2, row=1)
 
 window.mainloop()
