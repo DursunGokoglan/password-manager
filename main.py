@@ -3,7 +3,6 @@ from tkinter import messagebox
 from random import randint, choice, shuffle
 import pyperclip
 import json
-# ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
 
 def generate_password():
@@ -23,9 +22,6 @@ def generate_password():
     password = "".join(password_list)
     pyperclip.copy(password)
     return password
-
-
-# ---------------------------- SAVE PASSWORD ------------------------------- #
 
 
 def save(website, email, password):
@@ -70,9 +66,6 @@ def find_password(website):
                                          f"password: {password_record}")
         except KeyError:
             messagebox.showerror("Error", "No records matching.")
-
-
-# ---------------------------- UI SETUP ------------------------------- #
 
 
 window = Tk()
